@@ -1,0 +1,8 @@
+Machine = anon_enum(3);
+machineSpeed = [1, 2, 4];
+machineLoad = [12, 18, 30]; 
+
+Car = anon_enum(5);
+demandCar = [3, 4, 5, 10, 13];
+arrivalCar = [0, 0, 12, 20, 15];
+departureCar = [6, 8, 30, 30, 30];

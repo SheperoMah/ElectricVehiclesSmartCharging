@@ -1,0 +1,8 @@
+peakDumbCharging = 40700; 
+Machine = anon_enum(16); 
+machineSpeed = [3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700]; 
+machineLoad = [3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700,3700]; 
+Car = anon_enum(1); 
+demandCar = 34280; 
+arrivalCar = 61; 
+departureCar = 74; 
