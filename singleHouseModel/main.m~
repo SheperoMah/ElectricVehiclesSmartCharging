@@ -1,0 +1,73 @@
+% Author := Mahmoud Shepero
+% Date := 7 August 2018
+
+rng(5);
+%% LOAD THE DATA FILE
+data = importdata('HouseholdLoad.txt');
+
+data = data';
+
+load('../../EVSpatialModel/weekdayandweekendMonteCarlo.mat')
+clearvars T fileNames
+%% CORRECT THE DATA TO COMBINE ALL TRIPS ARRIVING HOME
+
+weekdayData = combineNonResidentialTrips(Weekday);
+
+weekendData = combineNonResidentialTrips(Weekend);
+
+
+%% 
+date1 = datetime(2018, 1, 1, 0, 0, 0);
+date2 = datetime(2018, 12, 31, 0, 0, 0);
+dateDays = (date1:days(1):date2)';
+specificConsumption = 250; % Wh/km
+timeUnitConversion = 60; % convert from Wh to Wmin
+chargingPower = 3700; % W
+powerLimit = 4000; % peak limit
+load = data(:,10); % load data
+
+durDumb = zeros(length(dateDays),1);
+durSmart = zeros(length(dateDays),1);
+chargingLoadDumb = zeros(length(data),1);
+chargingLoadControlled = zeros(length(data),1);
+
+
+for i=1:2
+    
+    if isweekend(dateDays(i))
+        [arrivalTime, energyReq] = sampleCarTrip(weekendData.distance, ...
+            weekendData.arrival, specificConsumption, 1);
+    else
+        [arrivalTime, energyReq] = sampleCarTrip(weekdayData.distance, ...
+            weekdayData.arrival, specificConsumption, 1);
+    end
+    
+    durDumb(i) = estimateOpportunisticCharging(energyReq*timeUnitConversion, ...
+        chargingPower);
+    
+    arrivalMin = (i-1) * 1440 + 1 + arrivalTime;
+    chargingLoadDumb(arrivalMin:arrivalMin+durDumb(i)-1) = chargingPower;
+    
+    
+    chargingLoad = estiamteControlledCharging(load(arrivalMin:end), ... 
+    powerLimit, energyReq*timeUnitConversion, chargingPower);
+        
+    
+
+    chargingLoadControlled(arrivalMin:end) = chargingLoadControlled( ...
+        arrivalMin:end) + chargingLoad;
+    
+    
+end
+
+
+%%
+
+plot(chargingLoadDumb(1:1440),'DisplayName','chargingLoadDumb');
+hold on;
+plot(chargingLoadControlled(1:1440),'DisplayName','chargingLoadControlled');
+hold off;
+
+
+
+
