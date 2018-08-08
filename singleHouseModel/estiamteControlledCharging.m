@@ -14,9 +14,11 @@ function chargingLoad = estiamteControlledCharging(load, limit, demand, ...
     availablePower = limit-load;
     
     i = 1;
-    while(demand > 0 && i <= length(load)) % quit at the end of the load vector
+    while(demand > 0 && i <= length(load)) % stop at the end of the load vector
+        
         chargingLoad(i) = min([chargingPower, availablePower(i), demand]);
         demand = demand-chargingLoad(i);
         i = i+1;
+        
     end
 end

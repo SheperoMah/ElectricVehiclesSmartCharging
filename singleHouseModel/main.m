@@ -1,7 +1,7 @@
 % Author := Mahmoud Shepero
 % Date := 7 August 2018
 
-rng(5);
+
 %% LOAD THE DATA FILE
 data = importdata('HouseholdLoad.txt');
 
@@ -20,61 +20,38 @@ weekendData = combineNonResidentialTrips(Weekend);
 date1 = datetime(2018, 1, 1, 0, 0, 0);
 date2 = datetime(2018, 12, 31, 0, 0, 0);
 dateDays = (date1:days(1):date2)';
+
 specificConsumption = 250; % Wh/km
 timeUnitConversion = 60; % convert from Wh to Wmin
-chargingPower = 3700; % W
-powerLimit = 5000; % peak limit
-load = data(:,10); % load data
+chargingPower = [3700, 6900, 7300, 11000, 22000]; % W
+powerLimit = [11000, 14000, 17000, 24000, 35000, 44000]; % peak limit
 
 
-durDumb = zeros(length(dateDays),1);
-durControlled = zeros(length(dateDays),1);
-chargingLoadDumb = zeros(length(data),1);
-chargingLoadControlled = zeros(length(data),1);
+maxDurationExtenstion = zeros(length(chargingPower), length(lim), length(home));
+countDurationExtenstion = zeros(length(chargingPower), length(lim), length(home));
+reducedPeak = zeros(length(chargingPower), length(lim), length(home));
 
 
-for i=1:length(dateDays)
-    
-    if isweekend(dateDays(i))
-        [arrivalTime, energyReq] = sampleCarTrip(weekendData.distance, ...
-            weekendData.arrival, specificConsumption, 1);
-    else
-        [arrivalTime, energyReq] = sampleCarTrip(weekdayData.distance, ...
-            weekdayData.arrival, specificConsumption, 1);
+rng(5);
+for cp = 1:length(chargingPower)
+    for lim = 1:length(powerLimit)
+        for home = 1:size(data,2)
+            struct = compareChargingMethods(data(:,home), powerLimit(lim), ...
+                chargingPower(cp), timeUnitConversion, specificConsumption, ...
+                dateDays, weekdayData, weekendData);
+            
+            maxDurationExtenstion(cp,lim,home) =  max( ...
+                struct.durControlled - struct.durDumb);
+            
+            countDurationExtenstion(cp,lim, home) = sum((struct.durControlled - ...
+                struct.durDumb) > 0 );
+            
+            reducedPeak(cp,lim,home) = max(struct.totalLoadDumb)...
+                - max(struct.totalLoadControlled);
+        end
     end
-    
-    durDumb(i) = estimateOpportunisticCharging(energyReq*timeUnitConversion, ...
-        chargingPower);
-    
-    arrivalMin = (i-1) * 1440 + 1 + arrivalTime;
-    endDumbcharging = min(arrivalMin+durDumb(i)-1, length(chargingLoadDumb));
-    chargingLoadDumb( arrivalMin:endDumbcharging ) = chargingPower;
-    
-    
-    chargingLoad = estiamteControlledCharging(load(arrivalMin:end) + ...
-        chargingLoadControlled(arrivalMin:end), ... 
-    powerLimit, energyReq*timeUnitConversion, chargingPower);
-    
-    durControlled(i) = length(chargingLoad(chargingLoad>0));
-        
-    
-
-    chargingLoadControlled(arrivalMin:end) = chargingLoadControlled( ...
-        arrivalMin:end) + chargingLoad;
-    
-    
-    
 end
-
-
 %%
 
-figure
-plot(load+chargingLoadDumb); hold on;plot(load+chargingLoadControlled)
 
-figure
-plot(durDumb); hold on; plot(durControlled)
-
-figure
-histogram(durControlled-durDumb)
 
