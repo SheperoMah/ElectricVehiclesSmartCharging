@@ -285,12 +285,13 @@ legend({'Weeday', 'Weekend', 'KDE Weekday', 'KDE Weekend'}...
 set(gca, 'fontsize', 20)
 box off
 
-%f.PaperUnits = 'centimeters';
-%f.PaperPosition = [0 0 30 20];
-set(f,'Units','Inches');
-pos = get(f,'Position');
-set(f,'PaperPositionMode','Auto', ...
-    'PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+wdth = 10;
+height = 10*9/16;
+set(f,'Resize','off');
+set(f,'PaperUnits','Inches');
+set(f,'PaperPositionMode','manual');
+set(f,'PaperPosition',[0 0 wdth height]);
+set(f,'PaperSize',[wdth height]); % IEEE columnwidth = 9cm
 print('ArrivalTime','-dpdf','-r0')
 
 
@@ -367,7 +368,7 @@ set(gca, 'fontsize', 20)
 box off
 
 wdth = 10;
-height = 10*6/8;
+height = 10*9/16;
 set(f,'Resize','off');
 set(f,'PaperUnits','Inches');
 set(f,'PaperPositionMode','manual');
